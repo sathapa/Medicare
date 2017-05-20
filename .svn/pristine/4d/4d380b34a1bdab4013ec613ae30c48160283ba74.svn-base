@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+    <script type="text/javascript">
+    window.addEvent('domready', function(){
+
+        //create our Accordion instance
+        var myAccordion = new Fx.Accordion(document.id('accordion'), 'h3.toggler', 'div.element', {
+            opacity: false,
+            onActive: function(toggler, element){
+                toggler.addClass('active');
+            },
+            onBackground: function(toggler, element){
+                toggler.removeClass('active');
+            }
+        });
+
+    });
+    </script>
+<?php
+    $this->breadcrumbs=array(
+        'Patients'=>array('index'),
+        $model->title,
+    );
+?>
+
+<?php
+    $this->menu=array(
+        array('label'=>'Create', 'icon'=>'icon-plus', 'url'=>Yii::app()->controller->createUrl('create'), 'linkOptions'=>array()),
+        array('label'=>'List', 'icon'=>'icon-th-list', 'url'=>Yii::app()->controller->createUrl('index'), 'linkOptions'=>array()),
+        array('label'=>'Update', 'icon'=>'icon-edit', 'url'=>Yii::app()->controller->createUrl('update',array('id'=>$model->id)), 'linkOptions'=>array()),
+        //array('label'=>'Search', 'icon'=>'icon-search', 'url'=>'#', 'linkOptions'=>array('class'=>'search-button')),
+        array('label'=>'Print', 'icon'=>'icon-print', 'url'=>'javascript:void(0);return false', 'linkOptions'=>array('onclick'=>'printDiv();return false;')),
+
+    );
+?>
+<table class="table table-condensed table-bordered" style="background-color: #F2FFEE;">
+    <tr>
+        <th>Patient ID</th>
+        <td colspan="5"><?php echo $model->id; ?></td>
+    </tr>
+    <tr>
+        <th>Name</th>
+        <td colspan="5"><?php echo $model->fName.' '.$model->mName.' '.$model->lName; ?></td>
+    </tr>
+    <tr>
+        <th>DOB</th>
+        <td><?php echo $model->dob; ?></td>
+        <th>Gender</th>
+        <td><?php echo $model->gender; ?></td>
+        <th>Marital Status</th>
+        <td><?php echo $model->marital_status; ?></td>
+    </tr>
+    <tr>
+        <th>Mobile</th>
+        <td><?php echo $model->mobilePhone; ?></td>
+        <th>Email</th>
+        <td colspan="3"><?php echo $model->email; ?></td>
+    </tr>
+</table>
+
+<b>Patient History</b>
+
+    <?php
+        $id = $_GET['id'];
+        $criteria = new CDbCriteria(array('order'=>'datetime DESC'));
+        $subjectiveData = Subjective::model()->findAllByAttributes(array('pid'=>$id),$criteria);
+        if($subjectiveData != null)
+        {
+            foreach ($subjectiveData as $subd)
+            {
+                $sid = $subd['sid'];
+                echo '<div id="accordion>">';
+                echo '<h3 class="toggler">DATE:'.$subd['datetime'].'</h3>';
+                echo '<div class="element">';
+                echo '<table class="table table-condensed table-bordered" style="background-color: #F2FFEE;">';
+                echo '<tr style="background-color: #DDFFAA"><th colspan="7">Subjective</th></tr>';
+                echo '<tr style="background-color: #EEFFBB"><td>B/P</td><td>BMI</td><td>Eye L</td><td>Eye R</td><td>Audio L</td><td>Audio R</td><td>Complain</td></tr>';
+                echo '<tr>';
+                echo '<td>'.$subd['blood_pressure'].'</td>';
+                echo '<td>'.$subd['bmi_calc'].'</td>';
+                echo '<td>'.$subd['eye_left'].'</td>';
+                echo '<td>'.$subd['eye_right'].'</td>';
+                echo '<td>'.$subd['audio_left'].'</td>';
+                echo '<td>'.$subd['audio_right'].'</td>';
+                echo '<td>'.$subd['complain'].'</td>';
+                echo '</tr>';
+
+                $objectiveData = Objective::model()->findAllByAttributes(array('pid'=>$id,'sid'=>$subd['sid']));
+                foreach ($objectiveData as $objd)
+                {
+                    echo '<tr style="background-color: #DDFFAA"><th colspan="7">Objective</th></tr>';
+                    echo '<tr>';
+                    echo '<td colspan="7">'.$objd['objective'].'</td>';
+                    echo '</tr>';
+                }
+                $assessmentData = Assessment::model()->findAllByAttributes(array('pid'=>$id,'sid'=>$subd['sid']));
+                $labData = LabResult::model()->findAllByAttributes(array('pid'=>$id,'sid'=>$subd['sid']));
+                foreach ($assessmentData as $assd)
+                {
+                    echo '<tr style="background-color: #DDFFAA"><th colspan="7">Assessment</th></tr>';
+                    echo '<tr style="background-color: #EEFFBB"><td>ICD 10 Code</td><td colspan="6">Description</td></tr>';
+                    echo '<tr>';
+                    echo '<td>'.$assd['icd10code'].'</td>';
+                    $icd = Icd10::model()->findByAttributes(array('icd10no'=>$assd['icd10code']));
+                    echo '<td colspan="7">'.$icd->icd10details.'</td>';
+                    echo '</tr>';
+                }
+
+                $planData = Plan::model()->findAllByAttributes(array('pid'=>$id,'sid'=>$subd['sid']));
+                $pharmacyDATA = PhOrder::model()->findAllByAttributes(array('pid'=>$id, 'sid'=>$subd['sid']));
+                foreach ($planData as $pland)
+                {
+                    echo '<tr style="background-color: #DDFFAA"><th colspan="7">Plan</th></tr>';
+                    echo '<tr>';
+                    echo '<td colspan="7">'.$pland['plan'].'</td>';
+                    echo '</tr>';
+                    echo '<tr style="background-color: #EEFFBB"><td colspan="7">Medication Prescription</td></tr>';
+                    foreach ($pharmacyDATA as $pharma)
+                    {
+                        $drugData = PhDrug::model()->findByPk($pharma['drug_id']);
+                        echo '<tr>';
+                        echo '<td colspan="7">'.$drugData->brand_name.' '.$drugData->unit_value.$drugData->unit_measurement.' '.$pharma['sig'].' for '.$pharma['days'].' days.'.'</td>';
+                        echo '</tr>';
+                    }
+                }
+                echo '</table>';
+                echo '</div>';
+                echo '</div>';
+            }
+        }
+    ?>
+
+
+<?php
+    /*
+        echo '<hr><b>Pharmacy Order</b>'.'<br>';
+
+        $labData = LabOrder::model()->findAllByAttributes(array('pid'=>$id));
+        echo '<hr><b>Lab Order</b>'.'<br>';
+        foreach ($labData as $labo)
+        {
+            echo $labo['sid']."<br>";
+        }
+
+        $labResult = LabResult::model()->findAllByAttributes(array('pid'=>$id));
+        echo '<hr><b>Lab Result</b><br>';
+        foreach ($labResult as $labr)
+        {
+            echo $labr['sid']."<br>";
+        }
+
+
+    */?>
+
+<?php /*$this->widget('bootstrap.widgets.TbDetailView',array(
+	'data'=>$model,
+	'attributes'=>array(
+		'id',
+		'title',
+		'fName',
+		'mName',
+		'lName',
+		'dob',
+		'gender',
+		'marital_status',
+		'sStreet',
+		'sWardNo',
+		'sCity',
+		'sDistrict',
+		'sZone',
+		'pStreet',
+		'pWardNo',
+		'pCity',
+		'pDistrict',
+		'pZone',
+		'country',
+		'motherName',
+		'guardianName',
+		'relation',
+		'eContact',
+		'ePhone',
+		'homePhone',
+		'workPhone',
+		'mobilePhone',
+		'email',
+	),
+)); */?><!--
+<style type="text/css" media="print">
+body {visibility:hidden;}
+.printableArea{visibility:visible;} 
+</style>
+<script type="text/javascript">
+function printDiv()
+{
+
+window.print();
+
+}
+</script>-->

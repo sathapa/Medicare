@@ -1,0 +1,119 @@
+<?php
+    $this->widget('bootstrap.widgets.TbAlert', array(
+        'block' => true,
+        'fade' => true,
+        'closeText' => '&times;', // false equals no close link
+        'events' => array(),
+        'htmlOptions' => array(),
+        'userComponentId' => 'user',
+        'alerts' => array(
+            'success' => array('closeText' => '&times;'),
+            'success1' => array('closeText' => '&times;'),
+            'success2' => array('closeText' => '&times;'),
+            'info', // you don't need to specify full config
+            'warning' => array('block' => false, 'closeText' => false),
+            'error' => array('block' => false, 'closeText' => 'AAARGHH!!')
+        ),
+    ));
+?>
+
+    <div class="form">
+        <?php $form=$this->beginWidget('bootstrap.widgets.TbActiveForm',array(
+            'id'=>'plan-form',
+            'enableClientValidation'=>true,
+            'clientOptions'=>array('onSubmit'=>true),
+            'enableAjaxValidation'=>false,
+            'method'=>'post',
+            'type'=>'inline',
+            'htmlOptions'=>array(
+                'enctype'=>'multipart/form-data'
+            )
+        )); ?>
+        <?php $this->beginWidget('bootstrap.widgets.TbBox',array(
+            'title'=>'Prescriptions & Plans',
+            'headerIcon'=>'icon-list',
+            'htmlOptions'=>array('class'=>'bootstrap-widget-table')
+        )); ?>
+        <?php echo $form->errorSummary($model,'Opps!!!', null,array('class'=>'alert alert-error span9')); ?>
+
+        <table class="table">
+            <tbody>
+            <tr>
+                <td colspan="7">
+                    <?php echo $form->html5EditorRow($model,'plan',array('rows'=>5, 'height' => '50', 'options' => array('color' => true),'style'=>'width:98%')); ?>
+                </td>
+            </tr>
+            <tr style="display: none">
+                <td><?php echo $form->textFieldRow($model,'pid',array('class'=>'span1','value'=>$pid)); ?>
+                    <?php echo $form->textFieldRow($model,'clerk',array('class'=>'span1','value'=>Yii::app()->user->empID())); ?>
+                    <?php echo $form->textFieldRow($model,'datetime',array('class'=>'span1')); ?>
+                </td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="7">
+                    <div class="pull-right">
+                        <?php $this->widget('bootstrap.widgets.TbButton', array(
+                            'buttonType'=>'submit',
+                            'type'=>'primary',
+                            'icon'=>'ok white',
+                            'label'=>$model->isNewRecord ? 'Save' : 'Save',
+                        )); ?>
+                        <?php $this->widget('bootstrap.widgets.TbButton', array(
+                            'buttonType'=>'reset',
+                            'icon'=>'remove',
+                            'label'=>'Reset',
+                        )); ?>
+                    </div>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+
+        <?php $this->endWidget(); ?>
+        <?php $this->endWidget(); ?>
+
+    </div>
+
+
+<!--Dialog-->
+<?php
+    /** Start Widget **/
+    $this->beginWidget('zii.widgets.jui.CJuiDialog',array(
+        'id'=>'dialog-medicine',
+        'options'=>array(
+            'title'=>'Medicine Prescription',
+            'modal'=>true,
+            'width'=>'65%',
+//            'height'=>600,
+            'autoOpen'=>false,
+            'resizable'=>false,
+            'overlay'=>array(
+                'backgroundColor'=>'#000',
+                'opacity'=>'0.5'
+            ),
+            'show'=>array(
+                'effect'=>'slide',
+                'duration'=>500,
+            ),
+            'hide'=>array(
+                'effect'=>'slide',
+                'duration'=>500,
+            ),
+        ),
+        'htmlOptions'=>array('style'=>'padding:0'),
+    ));
+
+    $model1 = array();
+    for ($i=0; $i<=6; $i++)
+    {
+        $model1[] = new PhOrder;
+    }
+    echo $this->renderPartial('/phOrder/_plan',array('model'=>$model1)) ;
+
+    $this->endWidget('zii.widgets.jui.CJuiDialog');
+
+     echo CHtml::button('Medicine Prescription (Click Here)', array('onclick'=>'$("#dialog-medicine").dialog("open"); return false;','class'=>'btn btn-primary', 'style'=>'width:100%'
+));
+?>

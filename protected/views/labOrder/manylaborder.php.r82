@@ -1,0 +1,252 @@
+<?php
+    $this->breadcrumbs = array(
+        'Lab Orders' => array('Lab Order'))
+?>
+<?php
+    $this->menu=array(
+        array('icon'=>'plus-sign-alt','label'=>'Subjective', 'url'=>array('/Subjective/create')),
+        array('icon'=>'plus-sign-alt','label'=>'Objective', 'url'=>array('/Objective/create')),
+        array('icon'=>'plus-sign-alt','label'=>'Assessment', 'url'=>array('/LabOrder/laborderr')),
+        array('icon'=>'plus-sign-alt','label'=>'Plan', 'url'=>array('/Plan/create')),
+        array('icon'=>'upload-alt','label'=>'Attach Document', 'url'=>array('DocumentsPatient/create')),
+    );
+?>
+
+<?php
+    $this->widget('bootstrap.widgets.TbAlert', array(
+        'block' => true,
+        'fade' => true,
+        'closeText' => '&times;', // false equals no close link
+        'events' => array(),
+        'htmlOptions' => array(),
+        'userComponentId' => 'user',
+        'alerts' => array(
+            'success' => array('closeText' => '&times;'),
+        ),
+    ));
+?>
+
+<?php $session = Yii::app()->session;
+    $dataLR = LabResult::model()->findAllByAttributes(array('sid'=>$session['sid']));
+    //echo $dataLR['1']->result;
+    $count = count($dataLR);
+    if($dataLR != null)
+    { ?>
+        <b>LAB Report:</b>
+        <table class="table well" border="1" style="font-size: 13px">
+            <tr>
+                <th width="5%"  style="text-align: center">SN.</th>
+                <th width="" style="text-align: center">Test Name</th>
+                <th width="10%" style="text-align: center">Test Unit</th>
+                <th width="10%" style="text-align: center">min range 1</th>
+                <th width="10%" style="text-align: center">max range 1</th>
+                <th width="10%" style="text-align: center">min range 2</th>
+                <th width="10%" style="text-align: center">max range 2</th>
+                <th width="10%" style="text-align: center">Result</th>
+                <th width="15%" style="text-align: center">Remarks</th>
+            </tr>
+            <?php
+                for ($i=1; $i<=$count; $i++)
+                {
+                    $dataLO = LabOrder::model()->findByPk($dataLR[$i-1]->loid);
+                    $dataLI = LabInventory::model()->findByPk($dataLO->lid);
+                    ?>
+                    <tr>
+                        <td style="text-align: center"><?php echo $i; ?></td>
+                        <td><?php echo $dataLI->test_name ?></td>
+                        <td style="text-align: center"><?php echo $dataLI->test_unit; ?></td>
+                        <td style="text-align: center"><?php echo $dataLI->min_range1 ;?></td>
+                        <td style="text-align: center"><?php echo $dataLI->max_range1 ;?></td>
+                        <td style="text-align: center"><?php echo $dataLI->min_range2 ;?></td>
+                        <td style="text-align: center"><?php echo $dataLI->max_range1 ;?></td>
+                        <td style="text-align: center"><?php echo $dataLR[$i-1]->result; ?></td>
+                        <td style="text-align: center"><?php echo $dataLR[$i-1]->suggestion; ?></td>
+                    </tr>
+                <?php }; ?>
+        </table>
+    <?php }; ?>
+
+<?php $this->beginWidget('bootstrap.widgets.TbBox',array(
+    'title'=>'ICD-10 Diagnosis',
+//    'headerIcon'=>'icon-plus',
+    'htmlOptions'=>array('class'=>'bootstrap-widget-table')
+)); ?>
+
+
+<?php $form=$this->beginWidget('bootstrap.widgets.TbActiveForm',array(
+    'id'=>'assessment-form',
+    'enableAjaxValidation'=>true,
+    'method'=>'post',
+    'type'=>'horizontal',
+    'htmlOptions'=>array(
+        'enctype'=>'multipart/form-data'
+    )
+)); ?>
+<?php
+$this->widget('bootstrap.widgets.TbAlert',array(
+    'block'=>true,
+    'fade'=>true,
+    'closeText'=>'&times;',
+    'events'=>array(),
+    'htmlOptions'=>array(),
+    'userComponentId'=>'user',
+    'alerts'=>array(
+        'success'=>array('closeText'=>'&times;'),
+        'warning'=>array('closeText'=>'&times;')
+    )
+))
+?>
+<table width="100%">
+    <tr>
+        <td style="text-align: right">
+            <table>
+                <tr>
+                    <td><?php /*echo $form->textFieldRow($model1,'icd10code',array('class'=>'span5','maxlength'=>500));*/
+                            $this->widget('ext.MyAutoComplete', array(
+                                'model'=>$model1,
+                                'attribute'=>'icd10code',
+                                'source'=>$this->createUrl('autoComplete'),
+                                // additional javascript options for the autocomplete plugin
+                                'options'=>array(
+                                    'minLength'=>'1',
+                                    'showAnim'=>'fold',
+                                    'autoFill'=>true,
+                                    'select'=>"js:function(event, ui) {
+                                          $(this).val(ui.item.icd10no);
+                                          $('#icd10details').val(ui.item.icd10details);
+                                          console.log( ui );
+                                            return false;
+                                        }",
+                                    'focus'=>"js:function(event, ui) {
+                                          $(this).val(ui.item.icd10no);
+                                             $('#icd10details').val(ui.item.icd10details);
+                                             console.log( ui );
+                                            return false;
+                                        }",
+
+
+                                    /*'select' => "js:function(event, ui) {
+                            $('#icd10no').val(ui.item.['icd10no']);
+                            }",
+                                    'change' => "js:function(event, ui) {
+                            if (!ui.item) {
+                                $('#icd10no').val('');
+                            }
+                            }",*/
+                                ),
+                                'htmlOptions'=>array(
+                                    'class'=>'span3',
+                                    'placeholder'=>'ICD-10 Code',
+                                ),
+                                'methodChain'=>'.data( "ui-autocomplete" )._renderItem = function( ul, item ) {
+          return $( "<li></li>" )
+              .data( "item.autocomplete", item )
+              .append( "<a><b>" + item.icd10no +"</b></br>"+ item.icd10details + "</a>" )
+              .appendTo( ul );
+      };'
+                            ));
+                        ?>
+                    </td>
+                </tr>
+            </table>
+            <?php $this->widget('bootstrap.widgets.TbButton', array(
+                    'buttonType'=>'submit',
+                    'type'=>'primary',
+                    'icon'=>'ok white',
+                    'label'=>$model1->isNewRecord ? 'Submit' : 'Save',
+                )); ?>
+            <?php $this->widget('bootstrap.widgets.TbButton', array(
+                    'buttonType'=>'reset',
+                    'icon'=>'remove',
+                    'label'=>'Reset',
+                )); ?>
+                </td>
+        <td>
+            <?php echo CHtml::TextArea('icd10details', '',array('id'=>'icd10details','class'=>'span6 pull-right','placeholder'=>'ICD-10 Details')); ?>
+        </td>
+    </tr>
+    <tr class="well">
+        <td colspan="2">
+            <?php
+            $dta = Assessment::model()->findAllByAttributes(array('sid'=>$session['sid']));
+            if(!empty($dta))
+            {
+                foreach($dta as $dtaa)
+                {
+                    $dtas = Icd10::model()->findByAttributes(array('icd10no'=>$dtaa->icd10code));
+                    echo "<b>".$dtaa->icd10code."</b></br>".$dtas->icd10details."</br></br>";
+                }
+            }
+            ?>
+        </td>
+    </tr>
+    <tr style="display: none">
+        <td>
+            <?php echo $form->textFieldRow($model1,'sid',array('class'=>'span5','value'=>$session['sid'])); ?>
+            <?php echo $form->textFieldRow($model1,'clerk',array('class'=>'span5','value'=>Yii::app()->user->id)); ?>
+            <?php echo $form->textFieldRow($model1,'pid',array('class'=>'span5','value'=>$session['PCID'])); ?>
+            <?php echo $form->textFieldRow($model1,'datetime',array('class'=>'span5')); ?>
+        </td>
+    </tr>
+</table>
+<div class="control-group">
+    <div class="span4">
+
+
+
+    </div>
+</div>
+<?php $this->endWidget(); ?>
+<?php $this->endWidget(); ?>
+
+
+<fieldset class="well">
+    <form action="#" method="post">
+        <table class="pull-left">
+            <tr>
+                <td><b>Select Test Type:</b></td>
+                <td><input type="text" id="testtp" name="testtp"/></td>
+                <td><input type="submit" name="search" value="Search" id="search" class="btn"></td>
+            </tr>
+        </table>
+    </form>
+
+
+    <?php $this->beginWidget('bootstrap.widgets.TbBox',array(
+        'title'=>'Select Lab Tests To Be Performed',
+        'headerIcon'=>'icon-plus',
+        'htmlOptions'=>array('class'=>'bootstrap-widget-table')
+    )); ?>
+    <form method="post" action="<?php echo Yii::app()->request->baseUrl; ?>/LabOrder/Savelab">
+        <table class="table">
+            <tr>
+                <?php
+                    $nameno = 0;
+                    foreach ($data as $ram) {
+                    $nameno++;
+                ?>
+                <td>
+                    <input type="checkbox" name="<?php echo $nameno; ?>" id="<?php echo $nameno; ?>"
+                           value="<?php echo $ram['liid']; ?>"/>&nbsp;<?php echo $ram['test_name']; ?>
+                </td>
+                <?php
+                    $val = 1;
+                    $mod = $nameno % $val;
+                    if ($mod == 0){
+                ?> </tr>
+            <tr><?php
+                    }
+                    } ?>
+            </tr>
+            <tr style="margin-top:20px;">
+                <td><input type="submit" id="passall" name="passall" value="Request Lab Test" style="margin-top:20px;"/>
+                    <input type="hidden" id="cntt" name="cntt" value="<?php echo $nameno; ?>"/>
+                    <input type="hidden" id="ppid" name="ppid" value="<?php echo $pid; ?>"/>
+
+                </td>
+            </tr>
+        </table>
+    </form>
+
+    <?php $this->endWidget(); ?>
+</fieldset>

@@ -1,0 +1,149 @@
+<?php
+    $this->menu=array(
+        array('icon'=>'list-alt','label'=>'List Patient', 'url'=>array('Report/listPatient','param1'=>'value1','active'=>true)),
+        array('icon'=>'list-alt','label'=>'Doctor Report', 'url'=>array('Report/doctorReport','param1'=>'value1')),
+        array('icon'=>'dollar','label'=>'Cash Book', 'url'=>array('Report/cashBook','param1'=>'value1')),
+    );
+?>
+
+
+<div class="form">
+    <form action="<?php echo Yii::app()->request->baseUrl; ?>/Report/ListPatient" method="post"  >
+        <table>
+            <tr>
+                <th>
+                    <?php $this->widget('zii.widgets.jui.CJuiDatePicker',array(
+                            'id' =>'fromDate',
+                            'name'=>'fromDate',
+//                        'value'=>date('Y-m-d'),
+                            'options' => array(
+                                'mode'=>'focus',
+                                'dateFormat'=>'yy-mm-dd',
+                                'showAnim' => 'slideDown',
+                                'changeMonth'=>true,
+                                'changeYear'=>true,
+                                'changeDay'=>true,
+                                'yearRange'=>'1900:2015',
+                            ),
+                            'htmlOptions'=>array(
+                                'required'=>'required',
+                                'placeholder'=>'From',
+                            ),
+                        )
+                    );?>
+                    <?php $this->widget('zii.widgets.jui.CJuiDatePicker',array(
+                            'id' =>'toDate',
+                            'name'=>'toDate',
+//                'value'=>date('Y-m-d'),
+                            'options' => array(
+                                'mode'=>'focus',
+                                'dateFormat'=>'yy-mm-dd',
+                                'showAnim' => 'slideDown',
+                                'changeMonth'=>true,
+                                'changeYear'=>true,
+                                'changeDay'=>true,
+                                'yearRange'=>'1900:2015',
+                            ),
+                            'htmlOptions'=>array(
+                                'required'=>'required',
+                                'placeholder'=>'To',
+                            ),
+                        )
+                    );?>
+                    <select name="gender" required="required">
+                        <option value="">Choose One</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Others</option>
+                    </select>
+                    <button type="submit" name="listPatient" id="listPatient" class="btn btn-info" style="margin-bottom: 1.3%"><i class="icon-search"> List Patient</i></button>
+                </th>
+            </tr>
+        </table>
+    </form>
+    
+    
+    <table class="table table-striped table-bordered table-condensed">
+       <tr>         
+          <?php if(!empty($fromDate)){?>
+           <td colspan="7"> <Strong> <?php echo ucfirst($gender); ?> </strong> </td>
+         
+ <?php }?>
+       </tr> 
+       <tr>
+           <td colspan="7">              
+            <?php if(!empty($fromDate)){
+                       echo  "<strong> From: &nbsp; &nbsp; </strong>";
+                       echo $fromDate;
+                    
+            }?> 
+                &nbsp; 
+                &nbsp;
+                        
+                <?php if(!empty($toDate)){
+                    echo  "<strong> To: &nbsp; &nbsp; </strong>";
+                    echo $toDate;
+                   
+                }?>
+            </td>
+        </tr>
+        <TR>
+            <th style="text-align: center">S.N.</th>
+            <th style="text-align: center">Card ID</th>
+            <th style="text-align: center">Name</th>
+            <th style="text-align: center">Mobile Phone</th>
+          
+        </TR>
+      <?php
+            $model = Patient::model()->find('id=:id', array(':id'=>$id));
+            var_dump($patient); exit();
+      ?>
+      <?php 
+ /*           if(!empty($patient)){
+            $sn = 1;
+            foreach ($patient as $mahesh){
+        ?>
+        <tr>
+            <td><?php echo $sn++; ?></td>
+            <td><?php echo $mahesh['cardID']; ?></td>
+            <td><?php echo $mahesh['fName'].' '.$mahesh['mName'].' '.$mahesh['lName']; ?></td>
+            <td><?php echo $mahesh['mobilePhone']; ?></td>
+        </tr>
+    <?php }}; */?>
+
+
+    </table>
+
+</div>
+<?php
+if(empty($patient))
+{ ?>
+    <div style="float: right">Total: <?php echo "0 Patients"; ?></div>
+<?php }
+else
+    { ?>
+<div style="float: right">Total: <?php echo count($patient)." "."Patients"; ?></div>
+<?php } ?>
+     <?php if(!empty($fromDate)){?>
+<div><form method="post" action="<?php echo Yii::app()->request->baseUrl; ?>/Report/GeneratePatientPdf">
+    <input type="hidden" name="fdate" value="<?php echo $fromDate ?>" />
+    <input type="hidden" name="tdate" value="<?php echo $toDate ?>" />
+    <input type="hidden" name="gend" value="<?php echo $gender ?>" />
+    <div style="float: left"><input class="btn-link" type="submit" value="Generate Pdf" ></div>
+</form>
+<?php }
+?> 
+      <?php if(!empty($fromDate)){?>
+<form method="post" action="<?php echo Yii::app()->request->baseUrl; ?>/Report/GeneratePatientExcel">
+    <input type="hidden" name="fdate" value="<?php echo $fromDate ?>" />
+    <input type="hidden" name="tdate" value="<?php echo $toDate ?>" />
+    <input type="hidden" name="gend" value="<?php echo $gender ?>" />
+    <div style="float: center"><input class="btn-link" type="submit" value="Generate Excel" /></div>
+</form>
+<?php
+      echo "heloo";
+      }
+?> 
+    
+
+</div>
